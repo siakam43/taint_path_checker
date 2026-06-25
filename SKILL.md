@@ -24,11 +24,13 @@ description: 使用命令 /taint-path-checker 触发。分析C语言函数调用
 ### 2.1 命令格式
 
 ```
-/taint-path-checker project_dir callchain_xxx.json
+/taint-path-checker <project_dir> <callchain_file>
 ```
 
-- `project_dir`：待分析项目根目录。若未指定，默认使用当前工作目录。**不向用户确认**。
-- `callchain_xxx.json`：调用链描述文件，文件名中的 `xxx` 即为 callchainID。
+**参数说明：**
+
+- `<project_dir>`：待分析项目的根目录路径。此参数为可选，若未提供则默认使用当前工作目录，无需向用户确认。
+- `<callchain_file>`：调用链描述文件的路径，格式为 JSON。文件名遵循命名约定 `{callchainID}.json`，即文件名（不含扩展名）即为该次分析任务的 callchainID。
 
 ### 2.2 调用链JSON格式
 
