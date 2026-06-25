@@ -34,18 +34,29 @@ description: 使用命令 /taint-path-checker 触发。分析C语言函数调用
 
 ### 2.2 调用链JSON格式
 
+调用链文件为一个 JSON 文档，包含以下字段：
+
+- `callchainID`：字符串，本次分析任务的唯一标识。
+- `chain`：数组，描述函数调用链。数组元素按调用顺序排列，调用链为线性结构（无分支）。**首个元素为入口函数**，其参数为外部输入来源；后续元素为依次被调用的函数。数组长度不固定，最少包含一个函数。
+
 ```json
 {
     "callchainID": "593393969",
     "chain": [
-        {"func": "入口函数名", "file": "/绝对路径/a.c", "begin_line": "213"},
-        {"func": "被调用函数名", "file": "/绝对路径/a.c", "begin_line": "367"}
+        {"func": "func_entry",   "file": "/path/to/a.c", "begin_line": "213"},
+        {"func": "func_dispatch", "file": "/path/to/a.c", "begin_line": "367"},
+        {"func": "func_process",  "file": "/path/to/b.c", "begin_line": "42"}
     ]
 }
 ```
 
-- chain 数组顺序即为调用顺序，第一个函数为入口函数。
-- 调用链始终为线性。
+每个 chain 元素包含：
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `func` | string | 函数名 |
+| `file` | string | 函数所在源文件的绝对路径 |
+| `begin_line` | string | 函数定义起始行号 |
 
 ### 2.3 初始化输出目录
 
