@@ -1,0 +1,10 @@
+{
+    "callchainID": "003",
+    "chain": [
+        {
+            "func": "bl2_load_image",
+            "file": "test_fixtures/scenario_003/bl2_image_loader.c",
+            "begin_line": "53"
+        }
+    ]
+}

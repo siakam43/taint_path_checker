@@ -1,0 +1,15 @@
+{
+    "callchainID": "002",
+    "chain": [
+        {
+            "func": "isp_handle_msg",
+            "file": "test_fixtures/scenario_002/isp_firmware.c",
+            "begin_line": "72"
+        },
+        {
+            "func": "isp_process_cmd_v2",
+            "file": "test_fixtures/scenario_002/isp_firmware.c",
+            "begin_line": "57"
+        }
+    ]
+}

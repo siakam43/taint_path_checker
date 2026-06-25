@@ -1,0 +1,15 @@
+{
+    "callchainID": "001",
+    "chain": [
+        {
+            "func": "npu_ioctl_handler",
+            "file": "test_fixtures/scenario_001/npu_driver.c",
+            "begin_line": "90"
+        },
+        {
+            "func": "npu_dispatch_command",
+            "file": "test_fixtures/scenario_001/npu_driver.c",
+            "begin_line": "41"
+        }
+    ]
+}
