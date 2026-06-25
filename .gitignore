@@ -1,0 +1,6 @@
+# Output directory
+.ethunter_out/
+
+# OMC state
+.omc/
+.claude/
