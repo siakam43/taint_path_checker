@@ -1,6 +1,6 @@
 ---
 name: taint-path-cleaner
-description: 使用命令 /taint-path-cleaner 触发。对污点路径安全检查器（taint-path-checker）产生的漏洞报告进行去误报分析，独立验证漏洞类型、触发路径可达性和安全影响，将正报与误报分类输出。适用于嵌入式/底层系统代码安全审计工作流中的报告精化阶段。
+description: 使用命令 /taint-path-cleaner 触发。当 taint-path-checker 产生漏洞报告后，需要逐一审查漏洞是否为误报时使用。适用于嵌入式/底层系统代码（Linux内核驱动、UEFI/BL31/BL2/XLoader、ISP/SensorHub/GPU固件）安全审计报告的精化阶段。
 ---
 
 # 污点路径去误报分析器
