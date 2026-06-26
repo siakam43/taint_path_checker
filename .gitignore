@@ -4,3 +4,7 @@
 # OMC state
 .omc/
 .claude/
+
+# Original requirements
+original_requirements.md
+original_requirements2.md
