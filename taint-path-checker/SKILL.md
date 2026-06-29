@@ -68,6 +68,18 @@ description: 使用命令 /taint-path-checker 触发。分析C语言函数调用
 
 目录不存在则使用 `mkdir -p` 创建。
 
+### 2.4 预查重
+
+在开始分析之前，先检查该调用链是否已被分析过：
+
+检查 `{project_dir}/.ethunter_out/taint-path-checker/{callchainID}_result.md` 是否存在 —— 若存在，说明此前已产出分析结果，跳过该调用链，直接输出提示信息并结束本次任务。
+
+提示信息格式：
+
+```
+该调用链已有分析结果：{project_dir}/.ethunter_out/taint-path-checker/{callchainID}_result.md，跳过分析。
+```
+
 ---
 
 ## 三、获取目标代码
@@ -421,4 +433,5 @@ echo -n "/srv/code/driver.c:npu_sem_alloc:380" | sha256sum | cut -c1-8
 | 污点传播路径在某处无法追踪 | 使用无漏洞报告模板，在摘要中注明该处，说明变量A在函数B中污点状态无法确定 |
 | 输出目录创建失败 | 尝试在当前目录下创建，确保有输出文件 |
 | 调用链JSON格式异常 | 读取后验证必需字段，若缺少callchainID或chain字段则在报告中报错 |
+| 结果文件已存在 | 输出跳过提示信息，不重复分析 |
 | 分析不完整但无确认漏洞 | 使用无漏洞报告模板，在摘要中说明已分析范围及中断原因。未确认的漏洞不报告 |
