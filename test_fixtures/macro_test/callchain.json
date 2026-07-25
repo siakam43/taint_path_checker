@@ -1,0 +1,7 @@
+{
+    "callchainID": "macro-test-001",
+    "chain": [
+        {"func": "entry_func", "file": "test_fixtures/macro_test/test.c", "begin_line": "10"},
+        {"func": "vuln_handler", "file": "test_fixtures/macro_test/test.c", "begin_line": "4"}
+    ]
+}
