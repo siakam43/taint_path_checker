@@ -149,7 +149,7 @@ description: 使用命令 /taint-tree-checker 触发。分析C语言函数调用
 
 | 模式 | 示例 | 规则 |
 |------|------|------|
-| 全局变量写入 | `g_var = tainted;` | 污点写入全局变量，调用链中后续函数读取 g_var 时视为污点 |
+| 全局变量写入 | `g_var = tainted;` | 污点写入全局变量，同链内后续函数读取 g_var 时视为污点 |
 | 静态局部变量 | `static int s = tainted;` | 同全局变量，s 在链内后续函数调用中保持污点 |
 | 全局变量读取 | `local = g_var;` | 若链内前面的函数已污染 g_var，则 local 为污点 |
 
@@ -338,7 +338,7 @@ echo -n "/srv/code/driver.c:npu_sem_alloc:380" | sha256sum | cut -c1-8
 ### 7.3 无漏洞报告模板
 
 ```markdown
-# 污点路径分析报告
+# 污点树分析报告
 
 - **调用树ID**：{TreeID}
 - **分析时间**：{当前时间}
@@ -354,7 +354,7 @@ echo -n "/srv/code/driver.c:npu_sem_alloc:380" | sha256sum | cut -c1-8
 ### 7.4 有漏洞报告模板
 
 ~~~markdown
-# 污点路径分析报告
+# 污点树分析报告
 
 - **调用树ID**：{TreeID}
 - **分析时间**：{当前时间}
@@ -375,7 +375,7 @@ echo -n "/srv/code/driver.c:npu_sem_alloc:380" | sha256sum | cut -c1-8
 | **所在文件** | /绝对路径/file.c |
 | **所在函数** | function_name |
 | **关键行号** | 起始行-结束行（如 380-385） |
-| **是否链外** | 否（如为链外漏洞填"是，此漏洞超出调用链范围"） |
+| **是否链外** | 否（如为链外漏洞填"是，此漏洞超出当前链范围"） |
 
 #### 漏洞描述
 
