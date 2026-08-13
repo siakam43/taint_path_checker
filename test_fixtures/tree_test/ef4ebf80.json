@@ -1,0 +1,13 @@
+{
+    "FUNC0$ef4ebf80": [
+        [
+            {"func": "FUNC0", "file": "test_fixtures/tree_test/test.c", "begin_line": "8"},
+            {"func": "FUNC1", "file": "test_fixtures/tree_test/test.c", "begin_line": "17"},
+            {"func": "FUNC2", "file": "test_fixtures/tree_test/test.c", "begin_line": "23"}
+        ],
+        [
+            {"func": "FUNC0", "file": "test_fixtures/tree_test/test.c", "begin_line": "8"},
+            {"func": "FUNC3", "file": "test_fixtures/tree_test/test.c", "begin_line": "28"}
+        ]
+    ]
+}
