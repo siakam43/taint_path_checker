@@ -24,33 +24,35 @@ description: 使用命令 /taint-tree-checker 触发。分析C语言函数调用
 ### 2.1 命令格式
 
 ```
-/taint-path-checker <project_dir> <callchain_file>
+/taint-tree-checker <project_dir> <tree_file>
 ```
 
 **参数说明：**
 
 - `<project_dir>`：待分析项目的根目录路径。此参数为可选，若未提供则默认使用当前工作目录，无需向用户确认。
-- `<callchain_file>`：调用链描述文件的路径，格式为 JSON。文件名遵循命名约定 `{callchainID}.json`，即文件名（不含扩展名）即为该次分析任务的 callchainID。
+- `<tree_file>`：调用树描述文件的路径，格式为 JSON。文件名遵循命名约定 `{TreeID}.json`，即文件名（不含扩展名）即为该次分析任务的 TreeID。
 
-### 2.2 调用链JSON格式
+### 2.2 调用树JSON格式
 
-调用链文件为一个 JSON 文档，包含以下字段：
-
-- `callchainID`：字符串，本次分析任务的唯一标识。
-- `chain`：数组，描述函数调用链。数组元素按调用顺序排列，调用链为线性结构。**首个元素为入口函数**，其参数为外部输入来源；后续元素为依次被调用的函数。数组长度不固定，最少包含一个函数。
+调用树文件为一个 JSON 文档，包含一个顶层键，格式为 `{入口函数名}${TreeID}`，值为调用链数组。每条链为元素数组，按调用顺序排列；**每条链的首个元素均为入口函数**，其参数为外部输入来源。链数组非空，最少包含一条链（单链树允许，退化为单链分析）。
 
 ```json
 {
-    "callchainID": "593393969",
-    "chain": [
-        {"func": "func_entry",   "file": "/path/to/a.c", "begin_line": "213"},
-        {"func": "func_dispatch", "file": "/path/to/a.c", "begin_line": "367"},
-        {"func": "func_process",  "file": "/path/to/b.c", "begin_line": "42"}
+    "FUNC0$ef4ebf80": [
+        [
+            {"func": "FUNC0", "file": "/src/a.c", "begin_line": "31"},
+            {"func": "FUNC1", "file": "/src/a.c", "begin_line": "156"},
+            {"func": "FUNC2", "file": "/src/a.c", "begin_line": "185"}
+        ],
+        [
+            {"func": "FUNC0", "file": "/src/a.c", "begin_line": "31"},
+            {"func": "FUNC3", "file": "/src/a.c", "begin_line": "156"}
+        ]
     ]
 }
 ```
 
-每个 chain 元素包含：
+每个链元素包含：
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
@@ -58,26 +60,33 @@ description: 使用命令 /taint-tree-checker 触发。分析C语言函数调用
 | `file` | string | 函数所在源文件的绝对路径 |
 | `begin_line` | string | 函数定义起始行号 |
 
+**解析规则（必须逐条执行）：**
+
+1. **TreeID 以文件名为准**：TreeID = tree_file 文件名（不含扩展名）。顶层键中 `$` 后部分必须与 TreeID 一致，不一致时在报告中报错并结束本次任务。**不得**把键中 `$` 后缀当作无关元数据而忽略校验。
+2. **键格式**：顶层键必须符合 `{函数名}${TreeID}` 形式（包含 `$`），否则在报告中报错并结束本次任务。
+3. **入口函数名一致**：顶层键中 `$` 前部分为入口函数名，每条链首元素的 `func` 必须与之一致，不一致时在报告中报错并结束本次任务。
+4. **链数组非空**：链数组必须为非空数组，否则在报告中报错并结束本次任务。
+
 ### 2.3 初始化输出目录
 
 执行分析前，**必须先创建输出目录**：
 
 ```
-{project_dir}/.ethunter_out/taint-path-checker/
+{project_dir}/.ethunter_out/taint-tree-checker/
 ```
 
-目录不存在则使用 `mkdir -p` 创建。
+目录不存在则使用 `mkdir -p` 创建。**不得**将报告写到其他位置（如项目根目录下的自建目录）。
 
 ### 2.4 预查重
 
-在开始分析之前，先检查该调用链是否已被分析过：
+在开始分析之前，先检查该调用树是否已被分析过：
 
-检查 `{project_dir}/.ethunter_out/taint-path-checker/{callchainID}_result.md` 是否存在 —— 若存在，说明此前已产出分析结果，跳过该调用链，直接输出提示信息并结束本次任务。
+检查 `{project_dir}/.ethunter_out/taint-tree-checker/{TreeID}_result.md` 是否存在 —— 若存在，说明此前已产出分析结果，跳过该调用树，直接输出提示信息并结束本次任务。
 
 提示信息格式：
 
 ```
-该调用链已有分析结果：{project_dir}/.ethunter_out/taint-path-checker/{callchainID}_result.md，跳过分析。
+该调用树已有分析结果：{project_dir}/.ethunter_out/taint-tree-checker/{TreeID}_result.md，跳过分析。
 ```
 
 ### 2.5 加载编译宏配置
