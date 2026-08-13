@@ -12,6 +12,17 @@
 
 **测试约定：** 本项目为文档型 skill，无传统单元测试。"测试"= 构造夹具 + `claude -p` 端到端试跑 + 对输出报告文件做内容断言。运行产物位于 `.ethunter_out/`（已被 gitignore），不参与提交。
 
+**RED 基线结果（2026-08-13 实测，无 skill 时子代理行为）：**
+
+| 场景 | 基线失败行为 | 代理原话（合理化借口） |
+|------|--------------|------------------------|
+| 基础树 | 跨链污染：把链1写入的全局 `g_flag` 当链2污点，误报 FUNC3:32 | "两条链是同一程序的运行时备选路径，链1写入的 persistent static 会流入链2" |
+| 全部场景 | 输出无规范：报告写 `reports/*.md`，无 `.ethunter_out/` 目录、无 `{TreeID}_result.md` 命名、无 TAINT-{hash8} ID | 各自"定义自己的报告结构" |
+| TreeID 不一致 | 不校验，继续分析并只记"低危数据完整性观察" | "`$` 后缀是用于存储/去重命名的身份哈希，纯元数据、无污点语义……仅当键中函数名无法解析时才拒绝" |
+| 缺源码链 | ✓ 跳过链2并记录缺口（符合预期，保留） | "中止会丢弃链1的真实发现；静默跳过会歪曲结果" |
+
+GREEN 验证（带 skill 试跑）：上述失败点全部纠正；5 个场景（主流程/预查重/TreeID不一致/缺源码链/单链树退化）一次通过；下游 cleaner 零改动消费树报告判定正报。REFACTOR 阶段未发现新的合理化借口，SKILL.md 无需追加修改。
+
 ---
 
 ### Task 1: 创建目录、复制模板、注册 skill
@@ -520,7 +531,7 @@ git commit -m "fix: remove leftover single-chain wording in taint-tree-checker"
 - Create: `test_fixtures/tree_test/test.c`
 - Create: `test_fixtures/tree_test/ef4ebf80.json`
 
-- [ ] **Step 1: 创建源文件 test.c**（内容如下，行号已按内容编排）
+- [ ] **Step 1: 创建源文件 test.c**（内容如下，行号已按内容编排；`g_flag` 用于测试链间独立规则）
 
 ```c
 #include <stdint.h>
@@ -528,6 +539,7 @@ git commit -m "fix: remove leftover single-chain wording in taint-tree-checker"
 #define BUF_SIZE 64
 
 static uint8_t g_buf[BUF_SIZE];
+static uint32_t g_flag;
 
 void FUNC0(uint32_t cmd, uint32_t idx)
 {
@@ -540,6 +552,7 @@ void FUNC0(uint32_t cmd, uint32_t idx)
 
 void FUNC1(uint32_t idx)
 {
+    g_flag = idx;               /* 链1写入全局变量 */
     FUNC2(idx);
 }
 
@@ -550,9 +563,9 @@ void FUNC2(uint32_t idx)
 
 void FUNC3(uint32_t idx)
 {
-    if (idx >= BUF_SIZE)        /* 链2：已校验 */
+    if (idx >= BUF_SIZE)        /* 链2：idx 已校验 */
         return;
-    g_buf[idx] = 0xBB;
+    g_buf[g_flag] = 0xCC;       /* 链2内 g_flag 未被污染（链间独立） */
 }
 ```
 
@@ -565,10 +578,10 @@ grep -n "^void FUNC" test_fixtures/tree_test/test.c
 Expected:
 
 ```
-7:void FUNC0(uint32_t cmd, uint32_t idx)
-16:void FUNC1(uint32_t idx)
-21:void FUNC2(uint32_t idx)
-26:void FUNC3(uint32_t idx)
+8:void FUNC0(uint32_t cmd, uint32_t idx)
+17:void FUNC1(uint32_t idx)
+23:void FUNC2(uint32_t idx)
+28:void FUNC3(uint32_t idx)
 ```
 
 若行号不符（文件被额外空行干扰），以 grep 实际输出为准修正 Step 3 的 JSON。
@@ -579,13 +592,13 @@ Expected:
 {
     "FUNC0$ef4ebf80": [
         [
-            {"func": "FUNC0", "file": "test_fixtures/tree_test/test.c", "begin_line": "7"},
-            {"func": "FUNC1", "file": "test_fixtures/tree_test/test.c", "begin_line": "16"},
-            {"func": "FUNC2", "file": "test_fixtures/tree_test/test.c", "begin_line": "21"}
+            {"func": "FUNC0", "file": "test_fixtures/tree_test/test.c", "begin_line": "8"},
+            {"func": "FUNC1", "file": "test_fixtures/tree_test/test.c", "begin_line": "17"},
+            {"func": "FUNC2", "file": "test_fixtures/tree_test/test.c", "begin_line": "23"}
         ],
         [
-            {"func": "FUNC0", "file": "test_fixtures/tree_test/test.c", "begin_line": "7"},
-            {"func": "FUNC3", "file": "test_fixtures/tree_test/test.c", "begin_line": "26"}
+            {"func": "FUNC0", "file": "test_fixtures/tree_test/test.c", "begin_line": "8"},
+            {"func": "FUNC3", "file": "test_fixtures/tree_test/test.c", "begin_line": "28"}
         ]
     ]
 }
@@ -645,8 +658,8 @@ grep -n "调用树ID\|结论\|漏洞ID\|TAINT-" test_fixtures/tree_test/.ethunte
 
 Expected 要点：
 - `调用树ID`：`ef4ebf80`
-- `结论`：`发现 1 个安全漏洞`（链2 FUNC3 已校验，不应报漏洞——验证链间独立）
-- 恰好一个 `TAINT-xxxxxxxx`，其"所在函数"为 `FUNC2`，"关键行号"含 `21`
+- `结论`：`发现 1 个安全漏洞`（链2 FUNC3 已校验，且 `g_flag` 链间不传播——链2 不应报漏洞，验证链间独立）
+- 恰好一个 `TAINT-xxxxxxxx`，其"所在函数"为 `FUNC2`，"关键行号"含 `25`（哈希应为 `/绝对路径/test.c:FUNC2:23` 的 SHA256 前 8 位）
 
 ```bash
 grep -n "FUNC3" test_fixtures/tree_test/.ethunter_out/taint-tree-checker/ef4ebf80_result.md
@@ -683,8 +696,8 @@ cat > test_fixtures/tree_test/mismatch.json <<'EOF'
 {
     "FUNC0$deadbeef": [
         [
-            {"func": "FUNC0", "file": "test_fixtures/tree_test/test.c", "begin_line": "7"},
-            {"func": "FUNC2", "file": "test_fixtures/tree_test/test.c", "begin_line": "21"}
+            {"func": "FUNC0", "file": "test_fixtures/tree_test/test.c", "begin_line": "8"},
+            {"func": "FUNC2", "file": "test_fixtures/tree_test/test.c", "begin_line": "23"}
         ]
     ]
 }
@@ -707,12 +720,12 @@ cat > test_fixtures/tree_test/missing.json <<'EOF'
 {
     "FUNC0$missing": [
         [
-            {"func": "FUNC0", "file": "test_fixtures/tree_test/test.c", "begin_line": "7"},
-            {"func": "FUNC1", "file": "test_fixtures/tree_test/test.c", "begin_line": "16"},
-            {"func": "FUNC2", "file": "test_fixtures/tree_test/test.c", "begin_line": "21"}
+            {"func": "FUNC0", "file": "test_fixtures/tree_test/test.c", "begin_line": "8"},
+            {"func": "FUNC1", "file": "test_fixtures/tree_test/test.c", "begin_line": "17"},
+            {"func": "FUNC2", "file": "test_fixtures/tree_test/test.c", "begin_line": "23"}
         ],
         [
-            {"func": "FUNC0", "file": "test_fixtures/tree_test/test.c", "begin_line": "7"},
+            {"func": "FUNC0", "file": "test_fixtures/tree_test/test.c", "begin_line": "8"},
             {"func": "GHOST", "file": "test_fixtures/tree_test/no_such_file.c", "begin_line": "1"}
         ]
     ]
