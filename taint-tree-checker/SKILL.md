@@ -327,9 +327,11 @@ echo -n "/srv/code/driver.c:npu_sem_alloc:380" | sha256sum | cut -c1-8
 
 同一 file+func+line 组合产生相同 ID，实现跨任务去重。
 
+**树内去重**：多条链发现相同漏洞 ID（同一 file:func:line）时，合并报告一次，攻击路径记录其中任一条真实可达的链。不得重复列出相同 ID 的漏洞。
+
 ### 7.2 输出文件
 
-路径：`{project_dir}/.ethunter_out/taint-path-checker/{callchainID}_result.md`
+路径：`{project_dir}/.ethunter_out/taint-tree-checker/{TreeID}_result.md`
 
 **此文件必须生成**，它是判断 skill 执行成功的依据。即使分析过程中遇到找不到源码等异常，也要生成报告说明情况。
 
@@ -338,15 +340,15 @@ echo -n "/srv/code/driver.c:npu_sem_alloc:380" | sha256sum | cut -c1-8
 ```markdown
 # 污点路径分析报告
 
-- **调用链ID**：{callchainID}
+- **调用树ID**：{TreeID}
 - **分析时间**：{当前时间}
 - **结论**：未发现安全漏洞
 
 ## 分析摘要
 
-（简述调用链功能、污点数据追踪结果、关键校验点说明）
+（逐链简述各链功能、污点数据追踪结果、关键校验点；被跳过的链注明链内容与跳过原因）
 
-该调用链中的外部输入均已在关键使用点前经过适当校验，未发现可被利用的安全漏洞。
+该调用树各链中的外部输入均已在关键使用点前经过适当校验，未发现可被利用的安全漏洞。
 ```
 
 ### 7.4 有漏洞报告模板
@@ -354,9 +356,13 @@ echo -n "/srv/code/driver.c:npu_sem_alloc:380" | sha256sum | cut -c1-8
 ~~~markdown
 # 污点路径分析报告
 
-- **调用链ID**：{callchainID}
+- **调用树ID**：{TreeID}
 - **分析时间**：{当前时间}
 - **结论**：发现 N 个安全漏洞
+
+## 分析情况
+
+（树内链数、各链分析状态：已分析的链逐一简述功能与关键校验；被跳过的链注明跳过原因。）
 
 ## 漏洞列表
 
