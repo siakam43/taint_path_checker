@@ -420,8 +420,8 @@ git commit -m "test: add tree_repair fixture with truncated chain and missing br
 
 - [ ] **Step 1: 残留单链措辞扫描**
 
-Run: `grep -n "链内" taint-tree-checker/SKILL.md; grep -n "逐链" taint-tree-checker/SKILL.md`
-Expected: `链内` 无匹配（退出码 1）；`逐链` 仅出现在 4.3"遍历方式不做强制（逐链或广度优先均可）"一处。若发现其他残留，按语义改为"调用树内/各链"并记录。
+Run: `grep -n "链内" taint-tree-checker/SKILL.md | grep -v "同链内"; grep -n "逐链" taint-tree-checker/SKILL.md`
+Expected: `链内` 除 4.1 规则段中的"**同链内**"标题外无匹配；`逐链` 仅出现在 4.3"遍历方式不做强制（逐链或广度优先均可）"一处。若发现其他残留，按语义改为"调用树内/各链"并记录。
 
 - [ ] **Step 2: 术语一致性扫描**
 
