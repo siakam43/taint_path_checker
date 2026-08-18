@@ -24,11 +24,11 @@
 
 ## 漏洞列表
 
-### 漏洞 TAINT-79c4b629
+### 漏洞 TAINT-4d15b5b2
 
 | 字段 | 内容 |
 |------|------|
-| **漏洞ID** | TAINT-79c4b629 |
+| **漏洞ID** | TAINT-4d15b5b2 |
 | **类型** | Buffer Overflow（数组越界写，OOB Write） |
 | **所在文件** | /home/admin/cc/wksp/siakam_security_skills/taint_path_checker/test_fixtures/tree_repair/test.c |
 | **所在函数** | func_indirect |
