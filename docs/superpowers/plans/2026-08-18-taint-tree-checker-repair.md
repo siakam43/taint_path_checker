@@ -176,7 +176,7 @@ new:
 - [ ] **Step 3: 回读校验**
 
 Run: `git diff taint-tree-checker/SKILL.md`
-Expected: 4.3 含"仅污点驱动"、"落盘"、"四态"三处新增；4.4 树外函数追踪与 4.3 联动。
+Expected: 4.3 含"仅污点驱动"、"落盘"、"完整性自检（五类终止状态）"三处新增；4.4 树外函数追踪与 4.3 联动。
 
 - [ ] **Step 4: Commit**
 
