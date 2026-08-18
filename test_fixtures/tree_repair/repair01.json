@@ -1,0 +1,8 @@
+{
+    "func_dispatch$repair01": [
+        [
+            {"func": "func_dispatch", "file": "test_fixtures/tree_repair/test.c", "begin_line": "8"},
+            {"func": "func_branch_a", "file": "test_fixtures/tree_repair/test.c", "begin_line": "17"}
+        ]
+    ]
+}
