@@ -29,5 +29,5 @@ void FUNC3(uint32_t idx)
 {
     if (idx >= BUF_SIZE)        /* 链2：idx 已校验 */
         return;
-    g_buf[g_flag] = 0xCC;       /* 链2内 g_flag 未被污染（链间独立） */
+    g_buf[g_flag] = 0xCC;       /* g_flag 经链1前次调用写入污点（跨链共享） */
 }
