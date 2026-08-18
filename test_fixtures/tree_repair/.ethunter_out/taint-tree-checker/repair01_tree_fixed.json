@@ -1,0 +1,13 @@
+{
+    "func_dispatch$repair01": [
+        [
+            {"func": "func_dispatch", "file": "test_fixtures/tree_repair/test.c", "begin_line": "8"},
+            {"func": "func_branch_a", "file": "test_fixtures/tree_repair/test.c", "begin_line": "17"},
+            {"func": "func_indirect", "file": "test_fixtures/tree_repair/test.c", "begin_line": "23"}
+        ],
+        [
+            {"func": "func_dispatch", "file": "test_fixtures/tree_repair/test.c", "begin_line": "8"},
+            {"func": "func_branch_b", "file": "test_fixtures/tree_repair/test.c", "begin_line": "28"}
+        ]
+    ]
+}
