@@ -1,0 +1,21 @@
+{
+    "func_disp$fanout01": [
+        [
+            {"func": "func_disp", "file": "test_fixtures/callback_fanout/test.c", "begin_line": "35"},
+            {"func": "cb_a", "file": "test_fixtures/callback_fanout/test.c", "begin_line": "9"}
+        ],
+        [
+            {"func": "func_disp", "file": "test_fixtures/callback_fanout/test.c", "begin_line": "35"},
+            {"func": "cb_b", "file": "test_fixtures/callback_fanout/test.c", "begin_line": "14"}
+        ],
+        [
+            {"func": "func_disp", "file": "test_fixtures/callback_fanout/test.c", "begin_line": "35"},
+            {"func": "cb_c", "file": "test_fixtures/callback_fanout/test.c", "begin_line": "18"},
+            {"func": "helper_write", "file": "test_fixtures/callback_fanout/test.c", "begin_line": "22"}
+        ],
+        [
+            {"func": "func_disp", "file": "test_fixtures/callback_fanout/test.c", "begin_line": "35"},
+            {"func": "cb_d", "file": "test_fixtures/callback_fanout/test.c", "begin_line": "26"}
+        ]
+    ]
+}
