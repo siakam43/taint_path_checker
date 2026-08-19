@@ -1,0 +1,16 @@
+{
+    "FUNC0$bypass01": [
+        [
+            {"func": "FUNC0", "file": "test_fixtures/insufficient_check/test.c", "begin_line": "7"},
+            {"func": "FUNC1", "file": "test_fixtures/insufficient_check/test.c", "begin_line": "14"}
+        ],
+        [
+            {"func": "FUNC0", "file": "test_fixtures/insufficient_check/test.c", "begin_line": "7"},
+            {"func": "FUNC2", "file": "test_fixtures/insufficient_check/test.c", "begin_line": "21"}
+        ],
+        [
+            {"func": "FUNC0", "file": "test_fixtures/insufficient_check/test.c", "begin_line": "7"},
+            {"func": "FUNC3", "file": "test_fixtures/insufficient_check/test.c", "begin_line": "28"}
+        ]
+    ]
+}
