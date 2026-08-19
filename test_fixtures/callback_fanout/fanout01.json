@@ -1,0 +1,7 @@
+{
+    "func_disp$fanout01": [
+        [
+            {"func": "func_disp", "file": "test_fixtures/callback_fanout/test.c", "begin_line": "35"}
+        ]
+    ]
+}
