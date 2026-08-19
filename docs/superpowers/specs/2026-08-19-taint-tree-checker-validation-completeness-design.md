@@ -99,7 +99,10 @@ test_fixtures/insufficient_check/
 ### test.c（1 入口 3 条链）
 
 ```c
+#include <stdint.h>
+
 #define BUF_SIZE 64
+
 static uint8_t g_buf[BUF_SIZE];
 
 void FUNC0(uint32_t idx, uint32_t off, uint32_t len)
@@ -125,9 +128,32 @@ void FUNC2(int32_t idx)                   /* 案例2：只查上界，负数绕�
 
 void FUNC3(uint32_t len)                  /* 案例3：对照——校验完备，不应报 */
 {
-    if (len > BUF_SIZE)
+    if (len >= BUF_SIZE)
         return;
-    g_buf[len % BUF_SIZE] = 0xCC;         /* 值域被完整约束 */
+    g_buf[len] = 0xCC;                    /* uint32 无负数，上界检查即完备 */
+}
+```
+
+注：案例 2 与案例 3 的校验语句形态相同（`if (x >= BUF_SIZE) return;`），区别在于参数符号性（int32 vs uint32），用于验证类型敏感判定。FUNC0 的 `idx` 形参为 uint32，调用 FUNC2 时隐式转换为 int32（0xFFFFFFFF → -1），正是攻击者可控的转换点。
+
+bypass01.json 骨架（遵循 SKILL.md 2.2 格式，file 路径为仓库相对路径）：
+
+```json
+{
+    "FUNC0$bypass01": [
+        [
+            {"func": "FUNC0", "file": "test_fixtures/insufficient_check/test.c", "begin_line": "7"},
+            {"func": "FUNC1", "file": "test_fixtures/insufficient_check/test.c", "begin_line": "14"}
+        ],
+        [
+            {"func": "FUNC0", "file": "test_fixtures/insufficient_check/test.c", "begin_line": "7"},
+            {"func": "FUNC2", "file": "test_fixtures/insufficient_check/test.c", "begin_line": "21"}
+        ],
+        [
+            {"func": "FUNC0", "file": "test_fixtures/insufficient_check/test.c", "begin_line": "7"},
+            {"func": "FUNC3", "file": "test_fixtures/insufficient_check/test.c", "begin_line": "28"}
+        ]
+    ]
 }
 ```
 
