@@ -1,0 +1,7 @@
+{
+    "func_disp$fanout_limit01": [
+        [
+            {"func": "func_disp", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "48"}
+        ]
+    ]
+}
