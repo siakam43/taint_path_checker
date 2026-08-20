@@ -1,5 +1,7 @@
 # taint-tree-checker 调用点区分与第五章流程化实施计划
 
+> **已执行完毕（2026-08-20）。** 落地后概念已升级："分析单元"由"调用点"改为"污点传播数据流路线"（提交 `7461286`、`2eea9c3`），以设计规格中的"修订记录"一节为定稿；本文档保留原始执行记录。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 将 taint-tree-checker 第五章重构为"分析范围确定 → 危险使用点定位 → 校验存在性检查 → 校验完备性检查 → 漏洞分析"流程主线，引入调用点区分原则（校验结论按调用点区分），解决同函数多次调用、实参不同导致的漏报，并用新夹具验证。
