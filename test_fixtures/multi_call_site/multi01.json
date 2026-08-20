@@ -1,0 +1,12 @@
+{
+    "FUNC0$multi01": [
+        [
+            {"func": "FUNC0", "file": "test_fixtures/multi_call_site/test.c", "begin_line": "7"},
+            {"func": "FUNC1", "file": "test_fixtures/multi_call_site/test.c", "begin_line": "15"}
+        ],
+        [
+            {"func": "FUNC0", "file": "test_fixtures/multi_call_site/test.c", "begin_line": "7"},
+            {"func": "FUNC2", "file": "test_fixtures/multi_call_site/test.c", "begin_line": "20"}
+        ]
+    ]
+}
