@@ -1,0 +1,88 @@
+{
+    "func_disp$fanout_limit01": [
+        [
+            {"func": "func_disp", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "48"},
+            {"func": "cb_00", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "10"}
+        ],
+        [
+            {"func": "func_disp", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "48"},
+            {"func": "cb_01", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "11"}
+        ],
+        [
+            {"func": "func_disp", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "48"},
+            {"func": "cb_02", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "12"}
+        ],
+        [
+            {"func": "func_disp", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "48"},
+            {"func": "cb_03", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "13"}
+        ],
+        [
+            {"func": "func_disp", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "48"},
+            {"func": "cb_04", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "14"}
+        ],
+        [
+            {"func": "func_disp", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "48"},
+            {"func": "cb_05", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "15"}
+        ],
+        [
+            {"func": "func_disp", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "48"},
+            {"func": "cb_06", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "16"}
+        ],
+        [
+            {"func": "func_disp", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "48"},
+            {"func": "cb_07", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "17"}
+        ],
+        [
+            {"func": "func_disp", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "48"},
+            {"func": "cb_08", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "18"}
+        ],
+        [
+            {"func": "func_disp", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "48"},
+            {"func": "cb_09", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "19"}
+        ],
+        [
+            {"func": "func_disp", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "48"},
+            {"func": "cb_10", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "20"}
+        ],
+        [
+            {"func": "func_disp", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "48"},
+            {"func": "cb_11", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "21"}
+        ],
+        [
+            {"func": "func_disp", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "48"},
+            {"func": "cb_12", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "22"}
+        ],
+        [
+            {"func": "func_disp", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "48"},
+            {"func": "cb_13", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "23"}
+        ],
+        [
+            {"func": "func_disp", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "48"},
+            {"func": "cb_14", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "24"}
+        ],
+        [
+            {"func": "func_disp", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "48"},
+            {"func": "cb_15", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "25"}
+        ],
+        [
+            {"func": "func_disp", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "48"},
+            {"func": "cb_16", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "26"}
+        ],
+        [
+            {"func": "func_disp", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "48"},
+            {"func": "cb_17", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "27"}
+        ],
+        [
+            {"func": "func_disp", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "48"},
+            {"func": "cb_18", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "28"}
+        ],
+        [
+            {"func": "func_disp", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "48"},
+            {"func": "cb_19", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "29"}
+        ],
+        [
+            {"func": "func_disp", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "48"},
+            {"func": "func_after", "file": "test_fixtures/fanout_limit/test.c", "begin_line": "43"}
+        ]
+    ]
+}
