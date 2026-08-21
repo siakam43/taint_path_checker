@@ -43,9 +43,9 @@ description: 使用命令 /taint-path-checker 触发。分析C语言函数调用
 {
     "callchainID": "593393969",
     "chain": [
-        {"func": "func_entry",   "file": "/path/to/a.c", "begin_line": "213"},
-        {"func": "func_dispatch", "file": "/path/to/a.c", "begin_line": "367"},
-        {"func": "func_process",  "file": "/path/to/b.c", "begin_line": "42"}
+        {"func": "func_entry",   "file": "src/a.c", "begin_line": "213"},
+        {"func": "func_dispatch", "file": "src/a.c", "begin_line": "367"},
+        {"func": "func_process",  "file": "src/b.c", "begin_line": "42"}
     ]
 }
 ```
@@ -55,8 +55,12 @@ description: 使用命令 /taint-path-checker 触发。分析C语言函数调用
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | `func` | string | 函数名 |
-| `file` | string | 函数所在源文件的绝对路径 |
+| `file` | string | 函数所在源文件路径，相对 `<project_dir>` |
 | `begin_line` | string | 函数定义起始行号 |
+
+**解析规则（必须逐条执行）：**
+
+1. **file 字段路径**：每个 chain 元素的 `file` 按 2.6 路径规范转换，转换失败（绝对路径不在 project_dir 内、规范化后含 `..` 段）在报告中报错并结束本次任务。
 
 ### 2.3 初始化输出目录
 
@@ -84,13 +88,19 @@ description: 使用命令 /taint-path-checker 触发。分析C语言函数调用
 
 检查 `{project_dir}/.ethunter_out/macro.json` 是否存在。若存在，读取并记住其中的宏定义（格式 `{"MACRO": "value", ...}`），这些是编译指令中动态定义的宏。若不存在则跳过，后续照常分析。
 
+### 2.6 路径规范
+
+- **规范化 norm(p)**：分隔符统一为 `/`；去掉前导 `./`（连续重复一并去掉）。规范化后含 `..` 段的路径非法（无法保证位于 project_dir 内），按解析规则报错并结束本次任务。
+- **file 字段转换**：`file` 为相对路径时，norm 后直接使用；为绝对路径时，若以 `norm(project_dir)` 为前缀，去掉该前缀得相对路径；否则报错并结束本次任务。
+- 转换得到的规范化相对路径（下称 rel）用于定位源码（`{project_dir}/{rel}`）、计算漏洞哈希（见 7.1）与报告展示（见 7.4）。
+
 ---
 
 ## 三、获取目标代码
 
 遍历 chain 数组中的每个函数，定位其源代码：
 
-1. 根据 `file` 和 `begin_line` 定位函数定义。
+1. 按 2.6 将 `file` 转换为 rel，以 `{project_dir}/{rel}` 定位函数定义并读取。
 2. 使用 Read 工具读取函数完整代码。若函数体较长，需分段读取直到函数结束。
 3. 若某函数源码在给定文件中不存在，**跳过该函数**，在最终报告中注明。
 4. 对于链外辅助函数：当污点数据传递到调用链之外的函数时，需在 project_dir 中搜索该函数的定义并分析其对污点数据的操作。但漏洞判定仍回归链内。
@@ -307,11 +317,11 @@ description: 使用命令 /taint-path-checker 触发。分析C语言函数调用
 
 格式：`TAINT-{hash8}`
 
-其中 `hash8` = 对字符串 `{文件绝对路径}:{函数名}:{起始行号}` 计算 SHA256，取前 8 位十六进制字符。
+其中 `hash8` = 对字符串 `{rel}:{函数名}:{起始行号}` 计算 SHA256，取前 8 位十六进制字符。rel 为按 2.6 转换得到的规范化相对路径。
 
 在 bash 中执行（示例）：
 ```bash
-echo -n "/srv/code/driver.c:npu_sem_alloc:380" | sha256sum | cut -c1-8
+echo -n "src/driver.c:npu_sem_alloc:380" | sha256sum | cut -c1-8
 ```
 
 同一 file+func+line 组合产生相同 ID，实现跨任务去重。
@@ -355,7 +365,7 @@ echo -n "/srv/code/driver.c:npu_sem_alloc:380" | sha256sum | cut -c1-8
 |------|------|
 | **漏洞ID** | TAINT-xxxxxxxx |
 | **类型** | Buffer Overflow / Integer Overflow / OOB Read / ... |
-| **所在文件** | /绝对路径/file.c |
+| **所在文件** | src/file.c |
 | **所在函数** | function_name |
 | **关键行号** | 起始行-结束行（如 380-385） |
 | **是否链外** | 否（如为链外漏洞填"是，此漏洞超出调用链范围"） |
@@ -375,15 +385,15 @@ echo -n "/srv/code/driver.c:npu_sem_alloc:380" | sha256sum | cut -c1-8
 ```
 攻击路径：
 
-[1] /绝对路径/file_a.c:111  func_entry()
-[2]   :49                    func_dispatch()
-[3]   :230                   func_process()
-[4] /绝对路径/file_b.c:78    func_trigger()  ← 触发点
+[1] src/file_a.c:111  func_entry()
+[2]   :49             func_dispatch()
+[3]   :230            func_process()
+[4] src/file_b.c:78   func_trigger()  ← 触发点
 ```
 
 格式规则：
 - `[N]` 步骤序号。
-- `文件:行号  函数名()`。同文件连续时后续步骤只写 `:行号`；跨文件时补全 `/绝对路径/file.c:行号`。
+- `文件:行号  函数名()`。同文件连续时后续步骤只写 `:行号`；跨文件时补全规范化相对路径 `src/file.c:行号`。
 - 末尾步骤用 `← 触发点` 标注漏洞触发位置。
 
 #### 关键代码片段
@@ -411,7 +421,7 @@ echo -n "/srv/code/driver.c:npu_sem_alloc:380" | sha256sum | cut -c1-8
 1. 输出文件 `{project_dir}/.ethunter_out/taint-path-checker/{callchainID}_result.md` 是否存在。
 2. 报告的结论（有漏洞/无漏洞）是否有充分的分析依据。
 3. 每个上报的漏洞是否通过了硬性检查门的三问。
-4. 漏洞 ID 是否基于 file:func:line 正确生成。
+4. 漏洞 ID 是否基于规范化相对路径的 file:func:line 正确生成。
 5. 是否有排除清单中的问题类型被误报。
 
 若输出文件不存在，立即创建并写入报告。
