@@ -24,13 +24,13 @@
 
 ## 漏洞列表
 
-### 漏洞 TAINT-4d15b5b2
+### 漏洞 TAINT-4c66bf8c
 
 | 字段 | 内容 |
 |------|------|
-| **漏洞ID** | TAINT-4d15b5b2 |
+| **漏洞ID** | TAINT-4c66bf8c |
 | **类型** | Buffer Overflow（数组越界写，OOB Write） |
-| **所在文件** | /home/admin/cc/wksp/siakam_security_skills/taint_path_checker/test_fixtures/tree_repair/test.c |
+| **所在文件** | test_fixtures/tree_repair/test.c |
 | **所在函数** | func_indirect |
 | **关键行号** | 25 |
 | **是否链外** | 否 |
@@ -56,7 +56,7 @@
 ```
 攻击路径：
 
-[1] /home/admin/cc/wksp/siakam_security_skills/taint_path_checker/test_fixtures/tree_repair/test.c:8   func_dispatch(cmd=0, idx=0x80000000)()
+[1] test_fixtures/tree_repair/test.c:8   func_dispatch(cmd=0, idx=0x80000000)()
 [2]   :11                    func_branch_a()
 [3]   :19                    g_cb = func_indirect; g_cb(idx)（函数指针间接调用，污点 idx 传递）
 [4]   :25                    func_indirect()  ← 触发点（g_buf[idx] = 0x55，idx 无校验）
@@ -65,7 +65,7 @@
 #### 关键代码片段
 
 ```c
-/* test.c:8  入口函数，cmd、idx 均为外部输入 */
+/* test_fixtures/tree_repair/test.c:8  入口函数，cmd、idx 均为外部输入 */
 void func_dispatch(uint32_t cmd, uint32_t idx)
 {
     if (cmd == 0) {
@@ -75,14 +75,14 @@ void func_dispatch(uint32_t cmd, uint32_t idx)
     }
 }
 
-/* test.c:17 */
+/* test_fixtures/tree_repair/test.c:17 */
 void func_branch_a(uint32_t idx)
 {
     g_cb = func_indirect;        /* 函数指针赋值，间接调用目标解析为 func_indirect */
     g_cb(idx);                   /* 间接调用，污点 idx 继续传递（链1延伸） */
 }
 
-/* test.c:23 */
+/* test_fixtures/tree_repair/test.c:23 */
 void func_indirect(uint32_t idx)
 {
     g_buf[idx] = 0x55;           /* ← 危险点：污点 idx 作数组下标，无上界校验，

@@ -8,8 +8,8 @@
 
 调用树共含 3 条链（入口函数 FUNC0，参数 `idx`、`off`、`len` 均为外部输入），均已纳入数据流追踪：
 
-- **链1（FUNC0 → FUNC1）**：入口参数 `len==0` 时进入。污点 `idx`、`off` 传入 FUNC1，FUNC1 使用前有 `if (idx + off >= BUF_SIZE) return;` 校验，但该校验表达式本身可整数回绕被绕过（见漏洞 TAINT-8ee72c47），校验不完备。
-- **链2（FUNC0 → FUNC2）**：入口参数 `len==1` 时进入。污点 `idx` 传入 FUNC2（uint32 实参隐式转换为 int32 形参，符号性翻转），FUNC2 使用前有 `if (idx >= BUF_SIZE) return;` 上界校验，但负数可绕过（见漏洞 TAINT-ba4f59e4），校验不完备。
+- **链1（FUNC0 → FUNC1）**：入口参数 `len==0` 时进入。污点 `idx`、`off` 传入 FUNC1，FUNC1 使用前有 `if (idx + off >= BUF_SIZE) return;` 校验，但该校验表达式本身可整数回绕被绕过（见漏洞 TAINT-750088e3），校验不完备。
+- **链2（FUNC0 → FUNC2）**：入口参数 `len==1` 时进入。污点 `idx` 传入 FUNC2（uint32 实参隐式转换为 int32 形参，符号性翻转），FUNC2 使用前有 `if (idx >= BUF_SIZE) return;` 上界校验，但负数可绕过（见漏洞 TAINT-c633b1c9），校验不完备。
 - **链3（FUNC0 → FUNC3）**：入口参数 `len` 为其他值时进入。污点 `len`（uint32）传入 FUNC3，`if (len >= BUF_SIZE) return;` 对无符号值即完备上界校验，`len` 被正确净化，**未发现漏洞**。
 
 **调用树修复情况**：未修复。污点传播路径全部落在输入调用树内，无需补充或延伸链，不生成 `bypass01_tree_fixed.json`。
@@ -18,13 +18,13 @@
 
 ## 漏洞列表
 
-### 漏洞 TAINT-8ee72c47
+### 漏洞 TAINT-750088e3
 
 | 字段 | 内容 |
 |------|------|
-| **漏洞ID** | TAINT-8ee72c47 |
+| **漏洞ID** | TAINT-750088e3 |
 | **类型** | OOB Write（数组越界写） |
-| **所在文件** | /home/admin/cc/wksp/siakam_security_skills/taint_path_checker/test_fixtures/insufficient_check/test.c |
+| **所在文件** | test_fixtures/insufficient_check/test.c |
 | **所在函数** | FUNC1 |
 | **关键行号** | 18 |
 | **是否链外** | 否 |
@@ -50,7 +50,7 @@
 ```
 攻击路径：
 
-[1] /home/admin/cc/wksp/siakam_security_skills/taint_path_checker/test_fixtures/insufficient_check/test.c:7   FUNC0(len=0, idx=0xFFFFFFFF, off=2)()
+[1] test_fixtures/insufficient_check/test.c:7   FUNC0(len=0, idx=0xFFFFFFFF, off=2)()
 [2]   :14                    FUNC1()
 [3]   :16                    idx + off 回绕为 1，通过 >= 64 校验
 [4]   :18                    g_buf[idx] = 0xAA  ← 触发点（idx=0xFFFFFFFF 越界写）
@@ -59,7 +59,7 @@
 #### 关键代码片段
 
 ```c
-/* test.c:14 */
+/* test_fixtures/insufficient_check/test.c:14 */
 void FUNC1(uint32_t idx, uint32_t off)
 {
     if (idx + off >= BUF_SIZE)   /* ← 校验表达式本身可回绕：
@@ -86,13 +86,13 @@ void FUNC1(uint32_t idx, uint32_t off)
 
 （`BUF_SIZE - idx` 仅在 `idx < BUF_SIZE` 时安全计算，先查 `idx >= BUF_SIZE` 短路保护。）
 
-### 漏洞 TAINT-ba4f59e4
+### 漏洞 TAINT-c633b1c9
 
 | 字段 | 内容 |
 |------|------|
-| **漏洞ID** | TAINT-ba4f59e4 |
+| **漏洞ID** | TAINT-c633b1c9 |
 | **类型** | OOB Write（数组越界写） |
-| **所在文件** | /home/admin/cc/wksp/siakam_security_skills/taint_path_checker/test_fixtures/insufficient_check/test.c |
+| **所在文件** | test_fixtures/insufficient_check/test.c |
 | **所在函数** | FUNC2 |
 | **关键行号** | 25 |
 | **是否链外** | 否 |
@@ -118,7 +118,7 @@ void FUNC1(uint32_t idx, uint32_t off)
 ```
 攻击路径：
 
-[1] /home/admin/cc/wksp/siakam_security_skills/taint_path_checker/test_fixtures/insufficient_check/test.c:7   FUNC0(len=1, idx=0xFFFFFFFF)()
+[1] test_fixtures/insufficient_check/test.c:7   FUNC0(len=1, idx=0xFFFFFFFF)()
 [2]   :21                    FUNC2()             （uint32 idx 隐式转换为 int32 -1）
 [3]   :23                    -1 >= 64 为假，通过上界校验
 [4]   :25                    g_buf[idx] = 0xBB  ← 触发点（idx=-1 负索引越界写）
@@ -127,7 +127,7 @@ void FUNC1(uint32_t idx, uint32_t off)
 #### 关键代码片段
 
 ```c
-/* test.c:21  形参为 int32，接收 uint32 实参时符号性翻转 */
+/* test_fixtures/insufficient_check/test.c:21  形参为 int32，接收 uint32 实参时符号性翻转 */
 void FUNC2(int32_t idx)
 {
     if (idx >= BUF_SIZE)     /* ← 只查上界不查下界：

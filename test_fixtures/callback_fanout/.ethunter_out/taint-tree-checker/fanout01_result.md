@@ -13,8 +13,8 @@
 | 回调 | 结论 |
 |------|------|
 | cb_a | 接收污点 idx；`idx >= BUF_SIZE` 上界校验（uint32 完备）后净化，无漏洞 |
-| cb_b | 接收污点 idx；无校验直接作数组下标，到达危险使用点（漏洞 TAINT-fd593ace） |
-| cb_c | 接收污点 idx；传递至树外函数 helper_write，补链后到达危险使用点（漏洞 TAINT-0f4173ae） |
+| cb_b | 接收污点 idx；无校验直接作数组下标，到达危险使用点（漏洞 TAINT-8bbf8d43） |
+| cb_c | 接收污点 idx；传递至树外函数 helper_write，补链后到达危险使用点（漏洞 TAINT-1094c181） |
 | cb_d | 接收污点 idx 但未使用（仅写 `g_buf[0]` 常量），污点停止传播 |
 
 **调用树修复情况**：输入树在 func_disp 的间接调用处中断，按 4.3 间接调用解析+补链规则修复——从入口函数补写 4 条新链（func_disp → cb_a；func_disp → cb_b；func_disp → cb_c → helper_write；func_disp → cb_d），均已写入 `fanout01_tree_fixed.json`，输入文件 `fanout01.json` 未被修改。四条补链依据"仅污点驱动"：实参 idx 含污点，均计入树。
@@ -23,13 +23,13 @@
 
 ## 漏洞列表
 
-### 漏洞 TAINT-fd593ace
+### 漏洞 TAINT-8bbf8d43
 
 | 字段 | 内容 |
 |------|------|
-| **漏洞ID** | TAINT-fd593ace |
+| **漏洞ID** | TAINT-8bbf8d43 |
 | **类型** | OOB Write（数组越界写） |
-| **所在文件** | /home/admin/cc/wksp/siakam_security_skills/taint_path_checker/test_fixtures/callback_fanout/test.c |
+| **所在文件** | test_fixtures/callback_fanout/test.c |
 | **所在函数** | cb_b |
 | **关键行号** | 15 |
 | **是否链外** | 否 |
@@ -55,7 +55,7 @@
 ```
 攻击路径：
 
-[1] /home/admin/cc/wksp/siakam_security_skills/taint_path_checker/test_fixtures/callback_fanout/test.c:35   func_disp(ver=1, idx=0x80000000)()
+[1] test_fixtures/callback_fanout/test.c:35   func_disp(ver=1, idx=0x80000000)()
 [2]   :38                    g_cbs[1](idx) → cb_b（函数表间接调用，注册点 init_reg 解析）
 [3]   :15                    cb_b()  ← 触发点（g_buf[idx] = 0xBB，idx 无校验）
 ```
@@ -63,21 +63,21 @@
 #### 关键代码片段
 
 ```c
-/* test.c:35  入口函数，ver、idx 均为外部输入 */
+/* test_fixtures/callback_fanout/test.c:35  入口函数，ver、idx 均为外部输入 */
 void func_disp(uint32_t ver, uint32_t idx)
 {
     if (ver < CB_COUNT)
         g_cbs[ver](idx);            /* ← 间接调用扇出：目标经 init_reg 注册点确定 */
 }
 
-/* test.c:30  注册点（间接调用解析依据） */
+/* test_fixtures/callback_fanout/test.c:30  注册点（间接调用解析依据） */
 void init_reg(void)
 {
     g_cbs[0] = cb_a; g_cbs[1] = cb_b;
     g_cbs[2] = cb_c; g_cbs[3] = cb_d;
 }
 
-/* test.c:14  回调2：危险使用点 */
+/* test_fixtures/callback_fanout/test.c:14  回调2：危险使用点 */
 static void cb_b(uint32_t idx)
 {
     g_buf[idx] = 0xBB;              /* ← 污点 idx 作数组下标，无上界校验，
@@ -100,13 +100,13 @@ static void cb_b(uint32_t idx)
 
 或统一在 func_disp 分发前校验 `idx`，保证所有回调路径均被覆盖。
 
-### 漏洞 TAINT-0f4173ae
+### 漏洞 TAINT-1094c181
 
 | 字段 | 内容 |
 |------|------|
-| **漏洞ID** | TAINT-0f4173ae |
+| **漏洞ID** | TAINT-1094c181 |
 | **类型** | OOB Write（数组越界写） |
-| **所在文件** | /home/admin/cc/wksp/siakam_security_skills/taint_path_checker/test_fixtures/callback_fanout/test.c |
+| **所在文件** | test_fixtures/callback_fanout/test.c |
 | **所在函数** | helper_write |
 | **关键行号** | 23 |
 | **是否链外** | 否 |
@@ -133,7 +133,7 @@ static void cb_b(uint32_t idx)
 ```
 攻击路径：
 
-[1] /home/admin/cc/wksp/siakam_security_skills/taint_path_checker/test_fixtures/callback_fanout/test.c:35   func_disp(ver=2, idx=0x80000000)()
+[1] test_fixtures/callback_fanout/test.c:35   func_disp(ver=2, idx=0x80000000)()
 [2]   :38                    g_cbs[2](idx) → cb_c（函数表间接调用）
 [3]   :19                    helper_write(idx)（污点传递至树外，补链延伸）
 [4]   :23                    helper_write()  ← 触发点（g_buf[idx] = 0xCC，idx 无校验）
@@ -142,13 +142,13 @@ static void cb_b(uint32_t idx)
 #### 关键代码片段
 
 ```c
-/* test.c:18  回调3：污点继续传递至树外 */
+/* test_fixtures/callback_fanout/test.c:18  回调3：污点继续传递至树外 */
 static void cb_c(uint32_t idx)
 {
     helper_write(idx);              /* 污点 idx 传入树外函数 */
 }
 
-/* test.c:22  树外辅助函数：危险使用点 */
+/* test_fixtures/callback_fanout/test.c:22  树外辅助函数：危险使用点 */
 static void helper_write(uint32_t idx)
 {
     g_buf[idx] = 0xCC;              /* ← 污点 idx 作数组下标，无上界校验，

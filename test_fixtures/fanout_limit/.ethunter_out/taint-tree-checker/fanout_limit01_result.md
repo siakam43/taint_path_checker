@@ -17,13 +17,13 @@
 
 ## 漏洞列表
 
-### 漏洞 TAINT-260a7509
+### 漏洞 TAINT-3ecf115e
 
 | 字段 | 内容 |
 |------|------|
-| **漏洞ID** | TAINT-260a7509 |
+| **漏洞ID** | TAINT-3ecf115e |
 | **类型** | OOB Write |
-| **所在文件** | /home/admin/cc/wksp/siakam_security_skills/taint_path_checker/test_fixtures/fanout_limit/test.c |
+| **所在文件** | test_fixtures/fanout_limit/test.c |
 | **所在函数** | cb_19 |
 | **关键行号** | 29-29 |
 | **是否链外** | 否 |
@@ -41,7 +41,7 @@
 ```
 攻击路径：
 
-[1] /home/admin/cc/wksp/siakam_security_skills/taint_path_checker/test_fixtures/fanout_limit/test.c:48  func_disp()
+[1] test_fixtures/fanout_limit/test.c:48  func_disp()
 [2]   :51     func_disp()  ← g_cbs[ver](idx)，ver=19 → cb_19
 [3]   :29     cb_19()  ← 触发点：g_buf[idx] = 0x13
 ```
@@ -62,13 +62,13 @@ void func_disp(uint32_t ver, uint32_t idx)
 
 在 cb_19 内增加边界校验：`if (idx >= BUF_SIZE) return;`（与 cb_00..cb_17 一致）。
 
-### 漏洞 TAINT-98ff1977
+### 漏洞 TAINT-471514e7
 
 | 字段 | 内容 |
 |------|------|
-| **漏洞ID** | TAINT-98ff1977 |
+| **漏洞ID** | TAINT-471514e7 |
 | **类型** | OOB Write |
-| **所在文件** | /home/admin/cc/wksp/siakam_security_skills/taint_path_checker/test_fixtures/fanout_limit/test.c |
+| **所在文件** | test_fixtures/fanout_limit/test.c |
 | **所在函数** | func_after |
 | **关键行号** | 45-45 |
 | **是否链外** | 否 |
@@ -86,7 +86,7 @@ func_disp 在扇出分发之后直接调用 func_after，后者将污点 idx 直
 ```
 攻击路径：
 
-[1] /home/admin/cc/wksp/siakam_security_skills/taint_path_checker/test_fixtures/fanout_limit/test.c:48  func_disp()
+[1] test_fixtures/fanout_limit/test.c:48  func_disp()
 [2]   :52     func_disp()  ← func_after(idx)，扇出之后的独立分支
 [3]   :45     func_after()  ← 触发点：g_buf[idx] = 0xFF
 ```

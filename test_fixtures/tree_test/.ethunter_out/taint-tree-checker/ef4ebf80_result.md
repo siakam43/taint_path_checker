@@ -19,13 +19,13 @@
 
 ## 漏洞列表
 
-### 漏洞 TAINT-661d88c5
+### 漏洞 TAINT-40d186a9
 
 | 字段 | 内容 |
 |------|------|
-| **漏洞ID** | TAINT-661d88c5 |
+| **漏洞ID** | TAINT-40d186a9 |
 | **类型** | OOB Write（数组越界写） |
-| **所在文件** | /home/admin/cc/wksp/siakam_security_skills/taint_path_checker/test_fixtures/tree_test/test.c |
+| **所在文件** | test_fixtures/tree_test/test.c |
 | **所在函数** | FUNC2 |
 | **关键行号** | 25 |
 | **是否链外** | 否 |
@@ -51,7 +51,7 @@
 ```
 攻击路径：
 
-[1] /home/admin/cc/wksp/siakam_security_skills/taint_path_checker/test_fixtures/tree_test/test.c:8   FUNC0(cmd=0, idx=0x80000000)()
+[1] test_fixtures/tree_test/test.c:8   FUNC0(cmd=0, idx=0x80000000)()
 [2]   :17                    FUNC1()
 [3]   :23                    FUNC2()  ← 触发点（g_buf[idx] = 0xAA，idx 无校验）
 ```
@@ -59,7 +59,7 @@
 #### 关键代码片段
 
 ```c
-/* test.c:8  入口函数，cmd、idx 均为外部输入 */
+/* test_fixtures/tree_test/test.c:8  入口函数，cmd、idx 均为外部输入 */
 void FUNC0(uint32_t cmd, uint32_t idx)
 {
     if (cmd == 0) {          /* cmd 隐式校验为 0，但 idx 不受约束 */
@@ -69,14 +69,14 @@ void FUNC0(uint32_t cmd, uint32_t idx)
     }
 }
 
-/* test.c:17 */
+/* test_fixtures/tree_test/test.c:17 */
 void FUNC1(uint32_t idx)
 {
     g_flag = idx;            /* 污点写入全局 g_flag（全树共享） */
     FUNC2(idx);              /* 污点 idx 继续传递 */
 }
 
-/* test.c:23 */
+/* test_fixtures/tree_test/test.c:23 */
 void FUNC2(uint32_t idx)
 {
     g_buf[idx] = 0xAA;       /* ← 危险点：污点 idx 作数组下标，无上界校验，
@@ -99,13 +99,13 @@ void FUNC2(uint32_t idx)
 
 或参照链2中 `FUNC3` 的既有做法，在 `FUNC0`/`FUNC1` 入口处统一对 `idx` 校验后再分发，保证所有使用路径均被覆盖。
 
-### 漏洞 TAINT-6d8cda29
+### 漏洞 TAINT-ab07c1bd
 
 | 字段 | 内容 |
 |------|------|
-| **漏洞ID** | TAINT-6d8cda29 |
+| **漏洞ID** | TAINT-ab07c1bd |
 | **类型** | OOB Write（数组越界写） |
-| **所在文件** | /home/admin/cc/wksp/siakam_security_skills/taint_path_checker/test_fixtures/tree_test/test.c |
+| **所在文件** | test_fixtures/tree_test/test.c |
 | **所在函数** | FUNC3 |
 | **关键行号** | 32 |
 | **是否链外** | 否 |
@@ -133,10 +133,10 @@ void FUNC2(uint32_t idx)
 ```
 攻击路径（跨调用触发，需两次调用；第一次沿链1设置 g_flag，第二次沿链2触发）：
 
-[1] 第一次调用：/home/admin/cc/wksp/siakam_security_skills/taint_path_checker/test_fixtures/tree_test/test.c:8   FUNC0(cmd=0, idx=0x80000000)()
+[1] 第一次调用：test_fixtures/tree_test/test.c:8   FUNC0(cmd=0, idx=0x80000000)()
 [2]   :17                    FUNC1()
 [3]   :19                    g_flag = idx        （污点写入全局 g_flag）
-[4] 第二次调用：/home/admin/cc/wksp/siakam_security_skills/taint_path_checker/test_fixtures/tree_test/test.c:8   FUNC0(cmd=1, idx=0)()
+[4] 第二次调用：test_fixtures/tree_test/test.c:8   FUNC0(cmd=1, idx=0)()
 [5]   :28                    FUNC3()             （idx 通过 idx < 64 校验，不覆盖 g_flag）
 [6]   :32                    g_buf[g_flag] = 0xCC  ← 触发点（g_flag 为首次调用写入的污点大值，无校验）
 ```
@@ -144,14 +144,14 @@ void FUNC2(uint32_t idx)
 #### 关键代码片段
 
 ```c
-/* test.c:17  第一次调用沿链1：污点写入全局 g_flag（全树共享） */
+/* test_fixtures/tree_test/test.c:17  第一次调用沿链1：污点写入全局 g_flag（全树共享） */
 void FUNC1(uint32_t idx)
 {
     g_flag = idx;            /* ← 链1写入全局变量 g_flag = 污点 idx */
     FUNC2(idx);
 }
 
-/* test.c:28  第二次调用沿链2：触发点 */
+/* test_fixtures/tree_test/test.c:28  第二次调用沿链2：触发点 */
 void FUNC3(uint32_t idx)
 {
     if (idx >= BUF_SIZE)     /* 仅校验 idx，不覆盖 g_flag */

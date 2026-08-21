@@ -12,13 +12,13 @@
 
 ## 漏洞列表
 
-### 漏洞 TAINT-6279b391
+### 漏洞 TAINT-a60f84b3
 
 | 字段 | 内容 |
 |------|------|
-| **漏洞ID** | TAINT-6279b391 |
+| **漏洞ID** | TAINT-a60f84b3 |
 | **类型** | OOB Write |
-| **所在文件** | /home/admin/cc/wksp/siakam_security_skills/taint_path_checker/test_fixtures/multi_call_site/test.c |
+| **所在文件** | test_fixtures/multi_call_site/test.c |
 | **所在函数** | FUNC1 |
 | **关键行号** | 17-17 |
 | **是否链外** | 否 |
@@ -43,7 +43,7 @@
 ```
 攻击路径：
 
-[1] /home/admin/cc/wksp/siakam_security_skills/taint_path_checker/test_fixtures/multi_call_site/test.c:7  FUNC0()
+[1] test_fixtures/multi_call_site/test.c:7  FUNC0()
 [2]   :12     FUNC1()  ← 调用点2：FUNC1(off)，实参 off 未校验
 [3]   :17     FUNC1()  ← 触发点：g_buf[v] = 0xAA
 ```
